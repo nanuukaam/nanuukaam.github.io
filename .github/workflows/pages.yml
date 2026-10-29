@@ -1,0 +1,44 @@
+name: Publish portfolio
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Prepare website and media
+        run: |
+          python3 - <<'PYTHON'
+          import pathlib, urllib.request, concurrent.futures
+          root=pathlib.Path("_site")
+          root.mkdir(exist_ok=True)
+          (root/"index.html").write_bytes(pathlib.Path("index.html").read_bytes())
+          (root/".nojekyll").touch()
+          urls=['https://framerusercontent.com/assets/dFeYvRsgj8b0rcFkn8BVuIaVY.mp4', 'https://framerusercontent.com/images/e8eIy6cP8Kq02Hu0CzjeRuuBwM.png', 'https://framerusercontent.com/images/Pc63BVprqHvmjBGiljBUGNf2g4I.jpg', 'https://framerusercontent.com/images/O1ECzIvSKfP16TjgDnyqdvKkWE.jpg', 'https://framerusercontent.com/images/BdSt7M9W0Lxhi6kjnftFna7xao.jpg', 'https://framerusercontent.com/images/1hhhEhgUFIGe91gHXEUepeMr4.jpg', 'https://framerusercontent.com/images/LNUBScjGCSQCq8d83ZmjkSbFxg.jpg', 'https://framerusercontent.com/images/f8XDo9bI8NAi8leORD6zBTbSPU.png?width=1080&height=1920', 'https://framerusercontent.com/images/4OxYXX1efBp1pSE5ZAiSOYzGw0.jpg', 'https://framerusercontent.com/images/ClEPAJEsGlQnvIgI47sIJgtKyxY.jpg', 'https://framerusercontent.com/images/QjHQ9MqmiBqYWDbx1pg3EA0w.jpg', 'https://framerusercontent.com/images/BUq03gtQ3EED7RF4gp59ezIORXQ.jpg', 'https://framerusercontent.com/images/gpI6ACnvHy6LBEcvQ4fSr348ts.png?width=1080&height=1920', 'https://framerusercontent.com/images/nSANNqntgxbwBfC6zdrmp6AW8cA.jpg', 'https://framerusercontent.com/images/JfghSzZ765ZK260sfIf9bA5c4.jpg', 'https://framerusercontent.com/images/wrvHpazU5JM2XaGF8KZ38cNcbMQ.jpg', 'https://framerusercontent.com/images/mOhCEhQOWayAfjUn2zfYHwcVvI.png', 'https://framerusercontent.com/images/RQEh5Bf39korLwpVYBK2Qxvn2U.webp', 'https://framerusercontent.com/images/FUIZ0kw9WZSu0bG4YhXC6ldmpvs.webp', 'https://framerusercontent.com/images/jJ58dwbhxQ1XBcK77NNxLfzRggI.webp', 'https://framerusercontent.com/images/mGmWzeaviWZc1czOAzxVBH9uVE.webp', 'https://framerusercontent.com/images/jrijrWCU80pc6610gLvJgZJBU.webp', 'https://framerusercontent.com/images/30HgzxvhnidAs3drLEvXVoUYU.webp', 'https://framerusercontent.com/images/6bpZQqkUwqaaeUOFpZOYlS72g6Y.webp', 'https://framerusercontent.com/images/8GhY0D1bc1c9EOrMD0HgXFRXd4.webp', 'https://framerusercontent.com/images/k6uVFAM5YJW1Vht28C7iywJwLiw.webp', 'https://framerusercontent.com/images/HDYQFEUxE7Xa7WRU4H4iHwMSA5s.webp', 'https://framerusercontent.com/images/Xz2BDali9v0i3E6QrCC9tR8I34.webp', 'https://framerusercontent.com/assets/ZYLTBQX28nuICaxW931TGGWryw.mp4', 'https://framerusercontent.com/assets/7aXNNV9iFp2xzR9pK8Z6Ewi9M.mp4', 'https://framerusercontent.com/assets/y7qAnnK1znOwmAFhOWmVSfW5dY.mp4', 'https://framerusercontent.com/assets/vE02xAhik8hlvgfDRK9BkBYc18.mp4', 'https://framerusercontent.com/assets/QcyX7c30b95nwLncLjvUI1O2Q.mp4', 'https://framerusercontent.com/assets/tmyWbTpEqafCXXfrb8VeXplwwM.mp4', 'https://framerusercontent.com/images/hontIgy4I8uShQqWG2OwBwploE.png?width=736&height=1049', 'https://framerusercontent.com/images/NohKGkuWED0xrehLSbAUfQFuVXc.png?width=1164&height=1233', 'https://framerusercontent.com/images/BGqJh1ZMczLs6jAmcHHeEvbg74A.png?width=736&height=736', 'https://framerusercontent.com/images/gIqYNWRFLHg4gn0dnIVGdfn7Vg.png?width=736&height=522', 'https://framerusercontent.com/images/syVSzVjIq6hqpmFYI15RfJeeSo.png?width=736&height=1327', 'https://framerusercontent.com/images/VjPHte1vaaLL9xWfRzaOmSEhpd8.png?width=750&height=1334', 'https://framerusercontent.com/images/zaMs6up7kXRyOca21En3D2L7fQc.png?width=866&height=1200', 'https://framerusercontent.com/images/VV3Qa1qE9uMpgQiFH4yGLvFyJic.png?width=700&height=494', 'https://framerusercontent.com/images/zWFrSWK1Oxaom6Hc5TEBfEqFzKA.png?width=1199&height=1635', 'https://framerusercontent.com/assets/UkOdRaR35OHVp1R7iwCfeUkWaQ.pdf']
+          def download(url):
+              name=url.split("?")[0].rsplit("/",1)[-1]
+              with urllib.request.urlopen(url,timeout=120) as response:
+                  (root/name).write_bytes(response.read())
+          with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+              list(pool.map(download,urls))
+          print("Downloaded",len(urls),"media files")
+          PYTHON
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
