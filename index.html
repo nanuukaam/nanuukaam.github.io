@@ -1229,4 +1229,43 @@ NanukaPortfolio.defaultProps = {
   mediaBaseUrl: ""
 };
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(NanukaPortfolio,{autoplay:true,followMouse:true}));</script></body></html>
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(NanukaPortfolio,{autoplay:true,followMouse:true}));</script><script>
+(() => {
+  if (window.__portfolioMonitor) return;
+  window.__portfolioMonitor = true;
+  const endpoint = 'https://nanuka-portfolio-monitor.nanuukaam.workers.dev/collect';
+  let session;
+  try {
+    const old = JSON.parse(sessionStorage.getItem('portfolio_monitor_visit') || 'null');
+    session = old && Date.now() - old.last < 30 * 60 * 1000 ? old.id : crypto.randomUUID();
+  } catch { session = crypto.randomUUID(); }
+  const page = crypto.randomUUID();
+  const fromCV = new URLSearchParams(location.search).get('utm_source') === 'cv';
+  let seconds = 0, views = 1, events = 0, cvDownload = false, previous = Date.now();
+  function send(final = false) {
+    const now = Date.now();
+    // Ignore long gaps caused by a sleeping device. Background tabs still count.
+    const gap = (now - previous) / 1000;
+    if (gap < 90) seconds += gap;
+    previous = now;
+    try { sessionStorage.setItem('portfolio_monitor_visit', JSON.stringify({id:session,last:now})); } catch {}
+    const body = JSON.stringify({session,page,seconds:Math.round(seconds),views,events,cvDownload,fromCV});
+    if (final && navigator.sendBeacon) navigator.sendBeacon(endpoint, new Blob([body],{type:'text/plain'}));
+    else fetch(endpoint,{method:'POST',body,mode:'cors',credentials:'omit',keepalive:true}).catch(()=>{});
+  }
+  send();
+  setInterval(send,15000);
+  addEventListener('pagehide',()=>send(true));
+  addEventListener('pageshow',e=>{ if(e.persisted) {previous=Date.now();send();} });
+  addEventListener('hashchange',()=>{views++;send();});
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('a,button');
+    if (!el) return;
+    events++;
+    if (el.matches('a') && (/\.pdf(?:$|[?#])/i.test(el.href) || /download\s*cv/i.test(el.textContent))) cvDownload=true;
+    send();
+  },true);
+})();
+
+</script>
+</body></html>
